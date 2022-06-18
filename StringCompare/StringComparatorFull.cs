@@ -31,11 +31,8 @@
 
             var recognizedMultipleTimes = RemoveFirstAppearedDuplicates(voiceRec);
 
-            Dictionary<int, string> initialWithIndex = new Dictionary<int, string>();
-            Dictionary<int, string> voiceWithIndex = new Dictionary<int, string>();
-
-            CreateIndexedList(initial, initialWithIndex);
-            CreateIndexedList(voiceRec, voiceWithIndex);
+            var initialWithIndex = CreateIndexedList(initial);
+            var voiceWithIndex = CreateIndexedList(voiceRec);
 
             Dictionary<int, string> initialWithIndexCopy = new Dictionary<int, string>(initialWithIndex);
             Dictionary<int, string> voiceWithIndexCopy = new Dictionary<int, string>(voiceWithIndex);
@@ -52,9 +49,8 @@
             List<int> notRecognizedIndices = new List<int>();
             Dictionary<string, string> wrongRecognition = new Dictionary<string, string>();
 
-            CalculateWrongAndNotRecognized(wrongRecognition, notRecognizedIndices, voiceWithIndexCopy,
-                initialWithIndexCopy,
-                initialWithIndex, voiceWithIndex, pairsIndices);
+            CalculateNotRecognized(wrongRecognition, notRecognizedIndices, voiceWithIndexCopy,
+                initialWithIndexCopy, pairsIndices);
 
             List<string> notRecognizedWords = IndicesToValues(notRecognizedIndices, initialWithIndexCopy);
 
@@ -65,7 +61,7 @@
                 similarity);
         }
 
-        private List<T> IndicesToValues<T>(IEnumerable<int> indices, Dictionary<int, T> indexedValues)
+        public List<T> IndicesToValues<T>(IEnumerable<int> indices, Dictionary<int, T> indexedValues)
         {
             List<T> values = new List<T>();
 
@@ -80,22 +76,24 @@
             return values;
         }
 
-        private void CreateIndexedList<T>(List<T> convertInit, Dictionary<int, T> converted)
+        public Dictionary<int, T> CreateIndexedList<T>(List<T> convertInit)
         {
+            Dictionary<int, T> converted = new Dictionary<int, T>();
+            
             for (var i = 0; i < convertInit.Count; i++)
             {
                 converted.Add(i, convertInit[i]);
             }
+
+            return converted;
         }
 
-        private void CalculateWrongAndNotRecognized
+        public void CalculateNotRecognized
         (
             Dictionary<string, string> wrongRecognition,
             List<int> notRecognizedIndices,
             Dictionary<int, string> voiceWithIndexCopy,
             Dictionary<int, string> initialWithIndexCopy,
-            Dictionary<int, string> initialWithIndex,
-            Dictionary<int, string> voiceWithIndex,
             Dictionary<int, int> pairs
         )
         {
@@ -103,27 +101,22 @@
 
             Dictionary<List<int>, List<int>> groups = new Dictionary<List<int>, List<int>>();
 
-
+            List<int> initGroupMember = new List<int>();
+            List<int> voiceGroupMember = new List<int>();
+            
             foreach (var keyValuePair in pairs)
             {
                 int keyIndex = keyValuePair.Key + 1, valueIndex = keyValuePair.Value + 1;
 
-                List<int> initGroupMember = new List<int>();
-                List<int> voiceGroupMember = new List<int>();
+                initGroupMember.Clear();
+                voiceGroupMember.Clear();
 
                 while (!pairs.ContainsValue(valueIndex) && voiceWithIndexCopy.ContainsKey(valueIndex))
                 {
                     voiceGroupMember.Add(valueIndex);
 
                     valueIndex++;
-                }
-                //  0    1    2    3    4    5    6    7    8
-                // "c", "x", "y", "z", "b", "a";
-                // "c", "x", "y", "z", "x", "x", "y", "a", "f"
-
-                //                      4    5    6    8
-                //                     "b"       
-                //                     "x", "x", "y", "f"     
+                }   
 
                 while (!pairs.ContainsKey(keyIndex) && initialWithIndexCopy.ContainsKey(keyIndex))
                 {
@@ -141,7 +134,7 @@
 
                 if (voiceGroupMember.Count > 0)
                 {
-                    groups.Add(initGroupMember, voiceGroupMember);
+                    groups.Add(new List<int>(initGroupMember), new List<int>(voiceGroupMember));
                 }
                 else if (initGroupMember.Count > 0)
                 {
@@ -151,18 +144,7 @@
                     }
                 }
             }
-
-            WrongRecognized(groups, voiceWithIndexCopy, initialWithIndexCopy, notRecognizedIndices, wrongRecognition);
-        }
-
-        private void WrongRecognized
-        (
-            Dictionary<List<int>, List<int>> groups,
-            Dictionary<int, string> voiceWithIndexCopy,
-            Dictionary<int, string> initialWithIndexCopy,
-            List<int> notRecognizedIndices,
-            Dictionary<string, string> wrongRecognition)
-        {
+            
             foreach (var group in groups)
             {
                 //короче тут надо описать матрицу сходимостей слов, а затем с большей сходимостью сгруппировать. Остальные добавить в NotRecognizedkekey
@@ -213,6 +195,18 @@
                     }
                 }
             }
+            CalculateWrongRecognized(groups, voiceWithIndexCopy, initialWithIndexCopy, notRecognizedIndices, wrongRecognition);
+        }
+
+        private void CalculateWrongRecognized
+        (
+            Dictionary<List<int>, List<int>> groups,
+            Dictionary<int, string> voiceWithIndexCopy,
+            Dictionary<int, string> initialWithIndexCopy,
+            List<int> notRecognizedIndices,
+            Dictionary<string, string> wrongRecognition)
+        {
+            
         }
 
         private float StringSimilarity(string a, string b)
