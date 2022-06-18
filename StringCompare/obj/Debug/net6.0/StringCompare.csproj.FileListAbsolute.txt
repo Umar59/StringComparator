@@ -10,3 +10,15 @@ C:\Users\24050\RiderProjects\StringCompare\StringCompare\obj\Debug\net6.0\String
 C:\Users\24050\RiderProjects\StringCompare\StringCompare\obj\Debug\net6.0\refint\StringCompare.dll
 C:\Users\24050\RiderProjects\StringCompare\StringCompare\obj\Debug\net6.0\StringCompare.pdb
 C:\Users\24050\RiderProjects\StringCompare\StringCompare\obj\Debug\net6.0\ref\StringCompare.dll
+D:\StringComparator\StringCompare\bin\Debug\net6.0\StringCompare.deps.json
+D:\StringComparator\StringCompare\bin\Debug\net6.0\StringCompare.dll
+D:\StringComparator\StringCompare\bin\Debug\net6.0\StringCompare.pdb
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.csproj.AssemblyReference.cache
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.GeneratedMSBuildEditorConfig.editorconfig
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.AssemblyInfoInputs.cache
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.AssemblyInfo.cs
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.csproj.CoreCompileInputs.cache
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.dll
+D:\StringComparator\StringCompare\obj\Debug\net6.0\refint\StringCompare.dll
+D:\StringComparator\StringCompare\obj\Debug\net6.0\StringCompare.pdb
+D:\StringComparator\StringCompare\obj\Debug\net6.0\ref\StringCompare.dll

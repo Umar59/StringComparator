@@ -1,17 +1,21 @@
-﻿using Microsoft.VisualStudio.TestPlatform.Utilities;
+﻿using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using NUnit.Framework;
 using Moq;
+using StringCompare;
 
 namespace Tests
 {
     public class StringCompareTests
     {
-        private StringCompare.StringComparatorFull _comparatorFull;
+        private StringComparatorFull _comparatorFull;
 
         [SetUp]
         public void Setup()
         {
-            _comparatorFull = new StringCompare.StringComparatorFull();
+            _comparatorFull = new StringComparatorFull();
         }
 
         [Test]
@@ -34,7 +38,6 @@ namespace Tests
         [TestCase(1, -1, -1, ExpectedResult = -1f)]
         [TestCase(-1, 1, -1, ExpectedResult = -1f)]
         #endregion
-        
         public float IsCalculatingWordsListSimilarity(float initialCountTest, float voiceRecCountTest, float similarPairsCountTest)
         {
             var similarity =
@@ -43,95 +46,119 @@ namespace Tests
             return similarity;
         }
 
-        #region TestCasesStruct
-
-        public struct RemovingList
-        {
-            public RemovingList(List<string> testCase, List<string> removedDuplicatesExpected, Dictionary<string, int> outPutExpected)
-            {
-                TestCase = testCase;
-                RemovedDuplicatesExpected = removedDuplicatesExpected;
-                OutPutExpected = outPutExpected;
-            }
-
-            public List<string> TestCase { get; }
-            public List<string> RemovedDuplicatesExpected { get; }
-            public Dictionary<string, int> OutPutExpected { get; }
-        }
-        #endregion testCasesStruct
-        
         [Test]
-        public void IsRemovingFirstAppearedDuplicates()
+        #region TestCases
+
+        [TestCase(new string[]{"Hello", "World"}, new string[]{"hello", "world"})]
+        [TestCase(new string[]{"HeLlo", "WoRLd"}, new string[]{"hello", "world"})]
+        [TestCase(new string[]{"HELLO", "WORLD"}, new string[]{"hello", "world"})]
+        [TestCase(new string[]{"HellO", "WorlD"}, new string[]{"hello", "world"})]
+        [TestCase(new string[]{"hello", "world"}, new string[]{"hello", "world"})]
+        [TestCase(new string[]{}, new string[]{})]
+
+        #endregion TestCases
+        public void IsMakingLowerCase(string[] upperCaseStrings, string[] expected)
         {
-            List<string> beforeRemovingDuplicates;
-            List<string> afterRemovingDuplicates;
-            Dictionary<int, int> outputDuplicatesExpected;
-            int[][] d = new int[2][];
-            outputDuplicatesExpected = d.ToDictionary(ints => {  })
-            #region TestCases
-
-            List<RemovingList> TestCases = new List<RemovingList>()
-            {
-                new RemovingList(new List<string>()
-                {
-                    "c", "x", "x", "y", "z", "x", "x", "y", "a", "f"
-                }, new List<string>()
-                {
-                    "c", "x", "y", "z", "x", "x", "y", "a", "f"
-                }, new Dictionary<string, int>()
-                {
-                    {"x", 2}
-                }),
-                // new RemovingList(new List<string>()
-                // {
-                //     "c", "c", "c", "c", "c", "c", "c", "c", "c", "c"
-                // }, new List<string>()
-                // {
-                //     "c"
-                // }, new Dictionary<string, int>()
-                // {
-                //     {"c", 10}
-                // }),
-                new RemovingList(new List<string>()
-                {
-                    "c", "c", "c", "y", "c", "y", "y", "y", "f", "f"
-                }, new List<string>()
-                {
-                    "c", "y", "c", "y", "y", "y", "f"
-                }, new Dictionary<string, int>()
-                {
-                    {"c", 3},
-                    {"f", 2}
-                }),
-                // new RemovingList(new List<string>()
-                // {
-                //     "c", "y", "c", "y", "y", "y", "f"
-                // }, new List<string>()
-                // {
-                //     "c", "y", "c", "y", "y", "y", "f"
-                // }, new Dictionary<string, int>()
-                // {
-                // }),
-                // new RemovingList(new List<string>()
-                // {
-                // }, new List<string>()
-                // {
-                // }, new Dictionary<string, int>()
-                // {
-                // }),
-            };
-
-            #endregion
-
-            foreach (var removingList in TestCases)
-            {
-                List<string> input = new List<string>(removingList.TestCase);
-
-                Dictionary<string, int> outputActual = _comparatorFull.RemoveFirstAppearedDuplicates(input);
+            List<string> actual = new List<string>(upperCaseStrings);
             
-                Assert.AreEqual(removingList.RemovedDuplicatesExpected, input);
-               // Assert.AreEqual(removingList.OutPutExpected, outputActual);
-            }
+            _comparatorFull.MakeLowerCase(actual);
+            
+            Assert.AreEqual(expected, actual);
+        }
+
+        #region TestCases
+
+        private static object[] _testCasesCalculatingPairs =
+        {
+            new object[]
+            {
+                new Dictionary<int, int>()
+                {
+                    {1,1}
+                },
+                new Dictionary<int, string>()
+                {
+                    {1, "a"},
+                    {2, "b"}
+                },
+                new Dictionary<int, string>()
+                {
+                    {1, "a"},
+                    {2, "c"}
+                }
+            },
+        };
+        
+        #endregion
+        [Test]
+        [TestCaseSource(nameof(_testCasesCalculatingPairs))]
+        public void IsCalculatingPairsCorrect(Dictionary<int, int> expectedPairsIndices, Dictionary<int, string> indexedVoice, Dictionary<int, string> indexedInitial)
+        {
+            Dictionary<int, int> actualPairsIndices = _comparatorFull.CalculatePairs(indexedVoice, indexedInitial);
+
+            Assert.AreEqual(expectedPairsIndices, actualPairsIndices);
+        }
+        
+        #region TestCases
+
+        private static object[] _testCasesIsRemovingFirstAppearedDuplicates =
+        {
+            new object[]
+            { 
+                new List<string>() { "a", "b" }, 
+                new List<string>() { "a", "b" }, 
+                new Dictionary<string, int>() { } 
+            },
+            new object[]
+            {
+                new List<string>() { "a", "b", "a" }, 
+                new List<string>() { "a", "b", "a" },
+                new Dictionary<string, int>() { }
+            },
+            new object[]
+            {
+                new List<string>() { "a", "a" }, 
+                new List<string>() { "a" },
+                new Dictionary<string, int>() { { "a", 2 } }
+            },
+            new object[]
+            {
+                new List<string>() { "a", "a", "a" }, 
+                new List<string>() { "a" },
+                new Dictionary<string, int>() { { "a", 3 } }
+            },
+            new object[]
+            {
+                new List<string>() { "a", "b", "b", "a", "x", "x" }, 
+                new List<string>() { "a", "b", "a", "x" },
+                new Dictionary<string, int>() { { "b", 2 }, { "x", 2 } }
+            },
+            new object[]
+            {
+                new List<string>() { "a", "b", "b", "b", "a", "x", "x" }, 
+                new List<string>() { "a", "b", "a", "x" },
+                new Dictionary<string, int>() { { "b", 3 }, { "x", 2 } }
+            },
+            new object[]
+            {
+                new List<string>() { }, 
+                new List<string>() { }, 
+                new Dictionary<string, int>() { }
+            },
+        };
+        
+        
+        
+        #endregion
+        [Test]
+        [TestCaseSource(nameof(_testCasesIsRemovingFirstAppearedDuplicates))]
+        public void IsRemovingFirstAppearedDuplicates(List<string> beforeRemoving, List<string> afterRemoving, Dictionary<string, int> expectedDuplicatesCount)
+        {
+            List<string> afterRemovingOutput = new List<string>(beforeRemoving);
+            Dictionary<string, int> actualDuplicatesCount = _comparatorFull.RemoveFirstAppearedDuplicates(afterRemovingOutput);
+            
+            Assert.AreEqual(afterRemoving, afterRemovingOutput);
+            Assert.AreEqual(expectedDuplicatesCount, actualDuplicatesCount);
         }
     }
 }

@@ -6,7 +6,6 @@
         public Dictionary<string, int> RecognizedMultipleTimes { get; }
         public List<string> NotRecognizedWords { get; }
         public float Similarity { get; }
-
         public Dictionary<string, string> Pairs { get; }
 
         public ComparatorResults(Dictionary<string, string> pairs, Dictionary<string, string> wrongRecognition,
@@ -22,7 +21,7 @@
 
     public class StringComparatorFull
     {
-        public  ComparatorResults Compare(List<string> initial, List<string> voiceRec)
+        public ComparatorResults Compare(List<string> initial, List<string> voiceRec)
         {
             int initialCount = initial.Count;
             int voiceRecCount = voiceRec.Count;
@@ -41,9 +40,7 @@
             Dictionary<int, string> initialWithIndexCopy = new Dictionary<int, string>(initialWithIndex);
             Dictionary<int, string> voiceWithIndexCopy = new Dictionary<int, string>(voiceWithIndex);
 
-            Dictionary<int, int> pairsIndices = new Dictionary<int, int>();
-
-            CalculatePairs(pairsIndices, voiceWithIndex, initialWithIndex);
+            Dictionary<int, int> pairsIndices = CalculatePairs(voiceWithIndex, initialWithIndex);
 
             Dictionary<string, string> pairsValues = new Dictionary<string, string>();
 
@@ -68,7 +65,7 @@
                 similarity);
         }
 
-        private  List<T> IndicesToValues<T>(IEnumerable<int> indices, Dictionary<int, T> indexedValues)
+        private List<T> IndicesToValues<T>(IEnumerable<int> indices, Dictionary<int, T> indexedValues)
         {
             List<T> values = new List<T>();
 
@@ -83,12 +80,7 @@
             return values;
         }
 
-        public int Test(int a)
-        {
-            return a + 1;
-        }
-
-        private  void CreateIndexedList<T>(List<T> convertInit, Dictionary<int, T> converted)
+        private void CreateIndexedList<T>(List<T> convertInit, Dictionary<int, T> converted)
         {
             for (var i = 0; i < convertInit.Count; i++)
             {
@@ -96,7 +88,7 @@
             }
         }
 
-        private  void CalculateWrongAndNotRecognized
+        private void CalculateWrongAndNotRecognized
         (
             Dictionary<string, string> wrongRecognition,
             List<int> notRecognizedIndices,
@@ -132,7 +124,7 @@
                 //                      4    5    6    8
                 //                     "b"       
                 //                     "x", "x", "y", "f"     
-                
+
                 while (!pairs.ContainsKey(keyIndex) && initialWithIndexCopy.ContainsKey(keyIndex))
                 {
                     initGroupMember.Add(keyIndex);
@@ -163,7 +155,7 @@
             WrongRecognized(groups, voiceWithIndexCopy, initialWithIndexCopy, notRecognizedIndices, wrongRecognition);
         }
 
-        private  void WrongRecognized
+        private void WrongRecognized
         (
             Dictionary<List<int>, List<int>> groups,
             Dictionary<int, string> voiceWithIndexCopy,
@@ -223,15 +215,17 @@
             }
         }
 
-        private  float StringSimilarity(string a, string b)
+        private float StringSimilarity(string a, string b)
         {
             return 0.8f;
         }
 
-        private  void CalculatePairs(Dictionary<int, int> pairs,
+        public Dictionary<int, int> CalculatePairs(
             Dictionary<int, string> voiceWithIndex,
             Dictionary<int, string> initialWithIndex)
         {
+            Dictionary<int, int> pairsIndices = new Dictionary<int, int>();
+            
             for (int i = 0; i <= voiceWithIndex.Last().Key; i++)
             {
                 for (int j = initialWithIndex.First().Key; j <= initialWithIndex.Last().Key; j++)
@@ -240,7 +234,7 @@
                     {
                         if (voiceWithIndex[i] == initialWithIndex[j])
                         {
-                            pairs.Add(j, i);
+                            pairsIndices.Add(j, i);
                             voiceWithIndex.Remove(i);
                             initialWithIndex.Remove(j);
 
@@ -249,9 +243,11 @@
                     }
                 }
             }
+
+            return pairsIndices;
         }
 
-        private  void MakeLowerCase(List<string> initial)
+        public void MakeLowerCase(List<string> initial)
         {
             for (int i = 0; i < initial.Count; i++)
             {
@@ -261,7 +257,7 @@
 
         public Dictionary<string, int> RemoveFirstAppearedDuplicates(List<string> voiceRec)
         {
-            Dictionary<string, int> duplicatesFromVoiceRec = new Dictionary<string, int>();
+            Dictionary<string, int> firstAppearedDuplicates = new Dictionary<string, int>();
             List<string> alreadyChecked = new List<string>();
 
             for (int i = 0; i < voiceRec.Count; i++)
@@ -276,7 +272,7 @@
                         {
                             voiceRec.RemoveAt(j);
                             appearancesCount++;
-
+                            j--;
                             alreadyChecked.Add(voiceRec[i]);
                         }
                         else
@@ -292,12 +288,12 @@
 
                     if (appearancesCount > 1)
                     {
-                        duplicatesFromVoiceRec.Add(voiceRec[i], appearancesCount);
+                        firstAppearedDuplicates.Add(voiceRec[i], appearancesCount);
                     }
                 }
             }
 
-            return duplicatesFromVoiceRec;
+            return firstAppearedDuplicates;
         }
 
         public float CalculateSimilarity(float initialCount, float voiceRecCount, float similarPairsCount)
@@ -306,12 +302,14 @@
             {
                 return -1;
             }
+
             if (initialCount > voiceRecCount)
             {
                 if (initialCount < similarPairsCount)
                 {
                     return -1;
                 }
+
                 return similarPairsCount / initialCount;
             }
             else
@@ -320,9 +318,9 @@
                 {
                     return -1;
                 }
+
                 return similarPairsCount / voiceRecCount;
             }
-
         }
     }
 }
