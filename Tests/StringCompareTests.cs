@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.ComTypes;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using NUnit.Framework;
 using Moq;
@@ -93,7 +94,6 @@ namespace Tests
         };
 
         #endregion
-
         [Test]
         [TestCaseSource(nameof(_testCasesCalculatingPairs))]
         public void IsCalculatingPairsCorrect(Dictionary<int, int> expectedPairsIndices,
@@ -212,6 +212,106 @@ namespace Tests
                     { 3, 3 },
                     { 5, 7 }
                 }
+            },
+            new object[]
+            {
+                new Dictionary<string, string>()
+                {
+                    {"c", "q"}
+                },
+                new List<int>()
+                {
+                    3
+                },
+                new Dictionary<int, string>()
+                {
+                    { 0, "c" },
+                    { 1, "q" },
+                    { 2, "x" },
+                    { 3, "y" },
+                },
+                new Dictionary<int, string>()
+                {
+                    { 0, "c" },
+                    { 1, "x" },
+                    { 2, "y" },
+                    { 3, "d"}
+                },
+                new Dictionary<int, int>()
+                {
+                    { 0, 0 },
+                    { 1, 2 },
+                    { 2, 3 },
+                }
+            },
+            new object[]
+            {
+                new Dictionary<string, string>()
+                {
+                    {"d", "r"},
+                    {"cds", "cd"}
+                },
+                new List<int>()
+                {
+                    
+                },
+                new Dictionary<int, string>()
+                {
+                    { 0, "c" },
+                    { 1, "x" },
+                    { 2, "y" },
+                    { 3, "r"},
+                    {4, "cd"}
+                },
+                new Dictionary<int, string>()
+                {
+                    { 0, "c" },
+                    { 1, "x" },
+                    { 2, "y" },
+                    { 3, "d"},
+                    { 4, "cds"}
+                },
+                new Dictionary<int, int>()
+                {
+                    { 0, 0 },
+                    { 1, 1 },
+                    { 2, 2 },
+                }
+            },
+            new object[]
+            {
+                new Dictionary<string, string>()
+                {
+                    {"cds", "cd"}
+                },
+                new List<int>()
+                {
+                    3
+                },
+                new Dictionary<int, string>()
+                {
+                    { 0, "c" },
+                    { 1, "x" },
+                    { 2, "y" },
+                    { 3, "cd"},
+                    { 4, "abc"},
+                },
+                new Dictionary<int, string>()
+                {
+                    { 0, "c" },
+                    { 1, "x" },
+                    { 2, "y" },
+                    { 3, "d"},
+                    { 4, "cds"},
+                    { 5, "abc"},
+                },
+                new Dictionary<int, int>()
+                {
+                    { 0, 0 },
+                    { 1, 1 },
+                    { 2, 2 },
+                    { 5, 4 },
+                }
             }
         };
 
@@ -235,6 +335,8 @@ namespace Tests
             Assert.AreEqual(expectedWrongRecognition, wrongRecognition);
             Assert.AreEqual(expectedNotRecognizedIndices, notRecognizedIndices);
         }
+
+        #region TestCases
 
         private static object[] _testCasesCreatingIndexedList =
         {
@@ -263,7 +365,8 @@ namespace Tests
                 }
             }
         };
-        
+
+        #endregion
         [Test]
         [TestCaseSource(nameof(_testCasesCreatingIndexedList))]
         public void IsCreatingIndexedList<T>(List<T> inputUnindexed, Dictionary<int, T> expected)
@@ -274,6 +377,8 @@ namespace Tests
             
             Assert.AreEqual(expected, actual);
         }
+
+        #region TestCases
 
         private static object[] _testCasesIndicesToValues =
         {
@@ -295,6 +400,7 @@ namespace Tests
             },
         };
 
+        #endregion
         [Test]
         [TestCaseSource(nameof(_testCasesIndicesToValues))]
         public void IsConvertingIndicesToValues<T>(IEnumerable<int> indices, Dictionary<int, T> input, List<T> expected)
@@ -305,6 +411,35 @@ namespace Tests
             
             Assert.AreEqual(expected, actual);
         }
-        
+
+        [Test]
+        #region TestCases
+
+        [TestCase("aunt", "ant", 1)]
+        [TestCase("Sam", "Samantha", 5)]
+        [TestCase("flomax", "volmax", 3)]
+
+        #endregion
+        public void IsReturningLevenshteinDistanceCorrect(string s, string t, int expected)
+        {
+            int actual = _comparatorFull.LevenshteinDistance(s, t);
+            
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        #region TestCases
+
+        [TestCase("aunt", "ant", ExpectedResult = 0.75f)]
+        [TestCase("Sam", "Samantha", ExpectedResult = 0.375f)]
+        [TestCase("flomax", "volmax", ExpectedResult = 0.5f)]
+
+        #endregion
+        public float IsCalculatingStringSimilarityCorrect(string inputA, string inputB)
+        {
+            float actualPercentage = _comparatorFull.StringSimilarity(inputA, inputB);
+
+            return actualPercentage;
+        }
     }
 }

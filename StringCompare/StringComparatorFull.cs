@@ -18,7 +18,6 @@
             Similarity = similarity;
         }
     }
-
     public class StringComparatorFull
     {
         public ComparatorResults Compare(List<string> initial, List<string> voiceRec)
@@ -38,6 +37,7 @@
             Dictionary<int, string> voiceWithIndexCopy = new Dictionary<int, string>(voiceWithIndex);
 
             Dictionary<int, int> pairsIndices = CalculatePairs(voiceWithIndex, initialWithIndex);
+            var similarity = CalculateSimilarity(initialCount, voiceRecCount, pairsIndices.Count);
 
             Dictionary<string, string> pairsValues = new Dictionary<string, string>();
 
@@ -53,9 +53,6 @@
                 initialWithIndexCopy, pairsIndices);
 
             List<string> notRecognizedWords = IndicesToValues(notRecognizedIndices, initialWithIndexCopy);
-
-
-            var similarity = CalculateSimilarity(initialCount, voiceRecCount, pairsIndices.Count);
 
             return new ComparatorResults(pairsValues, wrongRecognition, recognizedMultipleTimes, notRecognizedWords,
                 similarity);
@@ -182,7 +179,15 @@
                     }
                     else
                     {
-                        //хз куда их посылать
+                        if (wrongRecognition.ContainsKey(initialWithIndexCopy[initPairIndex]))
+                        {
+                            wrongRecognition[initialWithIndexCopy[group.Key[0]]] += voiceWithIndexCopy[group.Value[i]];
+                        }
+                        else
+                        {
+                            wrongRecognition.Add(initialWithIndexCopy[initPairIndex],
+                                voiceWithIndexCopy[group.Value[i]]);
+                        }                    
                     }
                 }
 
@@ -195,23 +200,55 @@
                     }
                 }
             }
-            CalculateWrongRecognized(groups, voiceWithIndexCopy, initialWithIndexCopy, notRecognizedIndices, wrongRecognition);
         }
 
-        private void CalculateWrongRecognized
-        (
-            Dictionary<List<int>, List<int>> groups,
-            Dictionary<int, string> voiceWithIndexCopy,
-            Dictionary<int, string> initialWithIndexCopy,
-            List<int> notRecognizedIndices,
-            Dictionary<string, string> wrongRecognition)
+        public float StringSimilarity(string a, string b)
         {
+            float largerStringLength = a.Length > b.Length ? a.Length : b.Length;
+            return (largerStringLength - LevenshteinDistance(a, b)) / largerStringLength;
+        }
+
+        public int LevenshteinDistance(string s, string t)
+        {
+            int sLength = s.Length;
+            int tLength = t.Length;
+
+            int[,] dim = new int[sLength + 1, tLength + 1];
+
+            int i = 0;
+            int j = 0;
+
+            for (i = 0; i < sLength; i++)
+            {
+                dim[i, 0] = i;
+            }
+             
+            for (j = 0; j < tLength; j++)
+            {
+                dim[0, j] = j;
+            }
+
+            for (i = 1; i < sLength; i++)
+            {
+                for (j = 1; j < tLength; j++)
+                {
+                    int cost = 0;
+                    
+                    if (t[j - 1] == s[i - 1])
+                    {
+                        cost = 0;
+                    }
+                    else
+                    {
+                        cost = 1;
+                    }
+
+                    dim[i, j] = Math.Min(Math.Min(dim[i - 1, j] + 1, dim[i, j - 1] + 1),
+                        dim[i - 1, j - 1] + cost);
+                }
+            }
             
-        }
-
-        private float StringSimilarity(string a, string b)
-        {
-            return 0.8f;
+            return dim[sLength - 1, tLength - 1];
         }
 
         public Dictionary<int, int> CalculatePairs(
